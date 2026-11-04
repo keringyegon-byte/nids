@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NIDS - Network Intrusion Detection System</title>
+<style>
+:root{--bg:#0b1220;--panel:#121c30;--panel2:#16233b;--line:#233553;--text:#e6edf7;--mute:#8da2c0;--blue:#4c9aff;
+--green:#2fd18b;--amber:#ffb84d;--red:#ff5d6c;--violet:#a78bfa;}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 "Segoe UI",system-ui,Arial,sans-serif}
+header{display:flex;align-items:center;gap:18px;padding:12px 22px;background:#0e1730;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5;flex-wrap:wrap}
+.logo{font-weight:700;font-size:18px;letter-spacing:.5px}.logo span{color:var(--blue)}
+.pills{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto;align-items:center}
+.pill{padding:4px 11px;border-radius:99px;font-size:12px;background:var(--panel2);border:1px solid var(--line);color:var(--mute)}
+.pill.on{color:var(--green);border-color:#1e6b4d}.pill.warn{color:var(--amber);border-color:#7a5a1e}.pill.bad{color:var(--red);border-color:#7a2a33}
+nav{display:flex;gap:4px;padding:10px 22px 0;border-bottom:1px solid var(--line);background:#0e1730;flex-wrap:wrap}
+nav a{padding:9px 16px;color:var(--mute);cursor:pointer;border-radius:8px 8px 0 0;text-decoration:none;border:1px solid transparent;border-bottom:none}
+nav a.active{background:var(--bg);color:var(--text);border-color:var(--line)}
+main{padding:20px 22px;max-width:1500px;margin:auto}section{display:none}section.active{display:block}
+.grid{display:grid;gap:16px}.kpis{grid-template-columns:repeat(auto-fit,minmax(190px,1fr));margin-bottom:16px}
+.two{grid-template-columns:2fr 1fr}.two-eq{grid-template-columns:1fr 1fr}.three{grid-template-columns:2fr 1.3fr 1fr}
+@media(max-width:1000px){.two,.two-eq,.three{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
+.card h3{margin:0 0 12px;font-size:13px;letter-spacing:.6px;text-transform:uppercase;color:var(--mute);font-weight:600}
+.kpi .v{font-size:30px;font-weight:700}.kpi .l{color:var(--mute);font-size:12px;text-transform:uppercase;letter-spacing:.5px}
+.kpi.red .v{color:var(--red)}.kpi.blue .v{color:var(--blue)}.kpi.green .v{color:var(--green)}.kpi.amber .v{color:var(--amber)}
+canvas{width:100%;height:210px;display:block}
+.feed{max-height:430px;overflow:auto}.alert{border-left:4px solid var(--mute);background:var(--panel2);padding:9px 12px;margin-bottom:8px;border-radius:6px}
+.alert.HIGH{border-color:var(--red)}.alert.MEDIUM{border-color:var(--amber)}.alert.LOW{border-color:var(--blue)}
+.alert.new{animation:flash 1.6s}@keyframes flash{0%{background:#5a2330}100%{background:var(--panel2)}}
+.alert .t{font-weight:600}.alert .m{color:var(--mute);font-size:12px}.alert .d{font-size:12.5px;margin-top:2px}
+.badge{display:inline-block;padding:1px 8px;border-radius:99px;font-size:11px;font-weight:700;margin-right:6px}
+.badge.HIGH{background:#5a2330;color:#ff9aa4}.badge.MEDIUM{background:#5a4220;color:#ffd08a}.badge.LOW{background:#1f3a63;color:#9cc4ff}
+.badge.sim{background:#3b2f63;color:#c9b8ff}.badge.ok{background:#17503a;color:#7ee2b8}.badge.no{background:#5a2330;color:#ff9aa4}.badge.info{background:#243652;color:#9fb6d8}
+.empty{color:var(--mute);padding:20px;text-align:center}
+.bar{display:flex;align-items:center;gap:8px;margin:7px 0;font-size:12.5px}.bar .n{width:150px;color:var(--mute);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar .b{flex:1;background:var(--panel2);border-radius:5px;height:14px;overflow:hidden}.bar .b i{display:block;height:100%;background:linear-gradient(90deg,var(--blue),var(--violet))}.bar .c{width:34px;text-align:right}
+table{width:100%;border-collapse:collapse;font-size:13px}th{color:var(--mute);text-align:left;font-weight:600;padding:8px;border-bottom:1px solid var(--line);font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+td{padding:8px;border-bottom:1px solid #1a2a47;vertical-align:middle}tr:hover td{background:#14233d}
+button,select,input{font:inherit;color:var(--text);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:7px 12px}
+input[type=number]{width:90px}input[type=text]{min-width:130px}
+button{cursor:pointer;background:#1c3558}button:hover{background:#244472}button.primary{background:var(--blue);border-color:var(--blue);color:#06101f;font-weight:700}
+button.danger{background:#5a2330;border-color:#7a2a33}button.big{padding:13px 22px;font-size:16px}button:disabled{opacity:.4;cursor:not-allowed}
+.sims{grid-template-columns:repeat(auto-fill,minmax(290px,1fr))}.sim h4{margin:0 0 4px}.sim p{color:var(--mute);margin:0 0 10px;font-size:13px}
+.sim .tag{font-size:11px;color:var(--violet);margin-bottom:8px}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.progress{height:10px;background:var(--panel2);border-radius:99px;overflow:hidden;margin:10px 0}.progress i{display:block;height:100%;background:var(--green);width:0;transition:width .3s}
+.note{color:var(--mute);font-size:12.5px}.warn-box{background:#3a2c14;border:1px solid #7a5a1e;border-radius:8px;padding:9px 12px;color:#ffd08a;font-size:12.5px;margin:10px 0}
+#toasts{position:fixed;right:18px;bottom:18px;display:flex;flex-direction:column;gap:8px;z-index:20}
+.toast{background:#2a1119;border:1px solid var(--red);border-left-width:6px;padding:10px 14px;border-radius:8px;min-width:280px;animation:in .3s}
+.toast.MEDIUM{background:#2a2111;border-color:var(--amber)}.toast.LOW,.toast.info{background:#111f33;border-color:var(--blue)}.toast.ok{background:#102a1f;border-color:var(--green)}
+@keyframes in{from{transform:translateX(40px);opacity:0}to{transform:none;opacity:1}}
+.mono{font-family:Consolas,Menlo,monospace;font-size:12px}.sec{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+label.chk{display:inline-flex;gap:6px;align-items:center;color:var(--mute);cursor:pointer}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">&#128737; <span>NIDS</span> &nbsp;Network Intrusion Detection System</div>
+  <div class="pills">
+    <span class="pill" id="pCap">Capture: -</span><span class="pill" id="pUsb">USB monitor: -</span>
+    <span class="pill" id="pSim">Simulator: idle</span><span class="pill mono" id="clock"></span>
+    <label class="chk"><input type="checkbox" id="sound"> sound</label>
+  </div>
+</header>
+<nav id="tabs">
+  <a data-t="dash" class="active">Dashboard</a><a data-t="sim">Attack Simulator</a><a data-t="usb">USB Devices</a>
+  <a data-t="hist">Alert History</a><a data-t="set">Settings</a>
+</nav>
+<main>
+<section id="dash" class="active">
+  <div class="grid kpis">
+    <div class="card kpi blue"><div class="l">Packets analysed</div><div class="v" id="kPk">0</div></div>
+    <div class="card kpi green"><div class="l">Packets / second</div><div class="v" id="kPps">0</div></div>
+    <div class="card kpi amber"><div class="l">Total alerts</div><div class="v" id="kAl">0</div></div>
+    <div class="card kpi red"><div class="l">High severity</div><div class="v" id="kHi">0</div></div>
+    <div class="card kpi"><div class="l">USB storage connected</div><div class="v" id="kUsb">0</div></div>
+  </div>
+  <div class="grid two">
+    <div class="card"><h3>Network traffic - packets per second (last 60 s)</h3><canvas id="cPps"></canvas></div>
+    <div class="card"><h3>Alerts by type</h3><div id="byType"></div></div>
+  </div>
+  <div class="grid three" style="margin-top:16px">
+    <div class="card"><div class="sec"><h3 style="margin:0">Live alert feed</h3><span class="note" id="feedNote"></span></div><div class="feed" id="feed"></div></div>
+    <div class="card"><h3>Top sources</h3><div id="topSrc"></div><h3 style="margin-top:18px">Alerts per minute (today)</h3><canvas id="cTl" style="height:120px"></canvas></div>
+    <div class="card"><h3>Severity</h3><div id="bySev"></div><p class="note" id="supp" style="margin-top:14px"></p></div>
+  </div>
+</section>
+
+<section id="sim">
+  <div class="card" style="margin-bottom:16px">
+    <div class="sec"><h3 style="margin:0">Presentation controls</h3><span class="note">Run attacks live while the dashboard reacts</span></div>
+    <div class="row">
+      <button class="primary big" id="btnDemo">&#9654; Run full demo</button>
+      <button class="danger" id="btnStop">Stop</button>
+      <label class="chk"><input type="checkbox" id="bg"> Background normal traffic</label>
+      <button id="btnClear">Clear simulated alerts</button>
+    </div>
+    <div class="row" style="margin-top:12px">
+      <b>Mode:</b>
+      <label class="chk"><input type="radio" name="mode" value="inject" checked> Safe injection (no network traffic, no admin needed)</label>
+      <label class="chk"><input type="radio" name="mode" value="network"> Real packets (admin needed)</label>
+      <b>Target IP:</b><input type="text" id="target" value="192.168.1.10">
+    </div>
+    <div class="warn-box" id="netWarn" style="display:none">Real-packet mode sends actual traffic. Use it only against a machine on <b>your own</b> lab network (private or loopback address). Limits: 2000 packets/s, 60 s. ARP spoofing and USB scenarios are never sent on a real network.</div>
+    <div class="progress"><i id="simBar"></i></div>
+    <div class="note" id="simMsg">Idle - choose a scenario below or run the full demo.</div>
+  </div>
+  <div class="grid sims" id="simCards"></div>
+</section>
+
+<section id="usb">
+  <div class="card" style="margin-bottom:16px"><div class="sec"><h3 style="margin:0">Connected USB devices</h3>
+    <span><button id="uSimS">Simulate flash drive</button> <button id="uSimH">Simulate rogue keyboard</button></span></div>
+    <p class="note" id="usbNote"></p><div id="usbDevices"></div></div>
+  <div class="card"><h3>USB event history</h3><div id="usbEvents"></div></div>
+</section>
+
+<section id="hist">
+  <div class="card">
+    <div class="row" style="margin-bottom:12px">
+      <select id="fType"><option value="">All types</option></select>
+      <select id="fSev"><option value="">All severities</option><option>HIGH</option><option>MEDIUM</option><option>LOW</option></select>
+      <select id="fSim"><option value="">Real + simulated</option><option value="0">Real only</option><option value="1">Simulated only</option></select>
+      <input type="text" id="fSrc" placeholder="Source IP / device">
+      <input type="text" id="fFrom" placeholder="From YYYY-MM-DD" style="width:140px"><input type="text" id="fTo" placeholder="To YYYY-MM-DD" style="width:140px">
+      <button class="primary" id="fGo">Search</button><a id="fCsv" href="#"><button>Export CSV</button></a>
+    </div>
+    <div id="histOut"></div>
+  </div>
+</section>
+
+<section id="set">
+  <div class="grid two-eq">
+    <div class="card"><h3>Live capture</h3>
+      <div class="row"><select id="iface" style="min-width:240px"></select><button class="primary" id="capStart">Start</button><button id="capStop">Stop</button></div>
+      <p class="note" id="capNote"></p></div>
+    <div class="card"><h3>Trusted hosts (ignored by the rules)</h3><div id="thosts"></div>
+      <div class="row" style="margin-top:8px"><input type="text" id="thIp" placeholder="192.168.1.1"><input type="text" id="thDesc" placeholder="description"><button id="thAdd">Add</button></div></div>
+  </div>
+  <div class="card" style="margin-top:16px"><div class="sec"><h3 style="margin:0">Detection rules</h3><button id="rulesReset">Reset to defaults</button></div><div id="rules"></div></div>
+  <div class="grid two-eq" style="margin-top:16px">
+    <div class="card"><h3>Watched ports</h3><div id="ports"></div>
+      <div class="row" style="margin-top:8px"><input type="number" id="pNum" placeholder="port"><select id="pCat"><option value="RESTRICTED">Restricted</option><option value="AUTH">Login service</option></select><button id="pAdd">Add</button></div></div>
+    <div class="card"><h3>Trusted USB devices</h3><div id="tusb"></div></div>
+  </div>
+</section>
+</main>
+<div id="toasts"></div>
+
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+let META=null,S=null,lastId=null,tab='dash',busy=false;
+const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+async function get(p){const r=await fetch(p);return r.json();}
+async function post(p,b){const r=await fetch(p,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b||{})});const j=await r.json();if(!j.ok)throw new Error(j.error||'Request failed');return j;}
+async function act(p,b,okMsg){try{await post(p,b);if(okMsg)toast(okMsg,'ok');refresh();}catch(e){toast(e.message,'MEDIUM');}}
+function toast(msg,sev='info',ms=5000){const t=document.createElement('div');t.className='toast '+sev;t.innerHTML=msg;$('#toasts').appendChild(t);setTimeout(()=>t.remove(),ms);}
+function beep(){if(!$('#sound').checked)return;try{const a=new (window.AudioContext||window.webkitAudioContext)(),o=a.createOscillator(),g=a.createGain();o.frequency.value=880;o.connect(g);g.connect(a.destination);g.gain.setValueAtTime(.15,a.currentTime);o.start();o.stop(a.currentTime+.25);}catch(e){}}
+const nice=n=>String(n).replace(/_/g,' ').toLowerCase().replace(/^./,c=>c.toUpperCase());
+const fmt=n=>Number(n).toLocaleString();
+
+$$('#tabs a').forEach(a=>a.onclick=()=>{tab=a.dataset.t;$$('#tabs a').forEach(x=>x.classList.toggle('active',x===a));$$('section').forEach(s=>s.classList.toggle('active',s.id===tab));if(tab==='hist')loadHist();if(tab==='set')loadIfaces();});
+
+/* ---------- charts ---------- */
+function setup(c){const r=c.getBoundingClientRect(),d=window.devicePixelRatio||1;c.width=r.width*d;c.height=r.height*d;const x=c.getContext('2d');x.scale(d,d);x.clearRect(0,0,r.width,r.height);return[x,r.width,r.height];}
+function lineChart(c,data){const[x,w,h]=setup(c),m=30,max=Math.max(10,...data)*1.15;x.strokeStyle='#233553';x.fillStyle='#8da2c0';x.font='11px sans-serif';
+ for(let i=0;i<=4;i++){const y=h-18-(h-28)*i/4;x.beginPath();x.moveTo(m,y);x.lineTo(w,y);x.stroke();x.fillText(Math.round(max*i/4),0,y+4);}
+ const px=i=>m+(w-m-6)*i/(data.length-1),py=v=>h-18-(h-28)*v/max;
+ const g=x.createLinearGradient(0,0,0,h);g.addColorStop(0,'rgba(76,154,255,.45)');g.addColorStop(1,'rgba(76,154,255,0)');
+ x.beginPath();data.forEach((v,i)=>i?x.lineTo(px(i),py(v)):x.moveTo(px(i),py(v)));x.lineTo(px(data.length-1),h-18);x.lineTo(px(0),h-18);x.fillStyle=g;x.fill();
+ x.beginPath();data.forEach((v,i)=>i?x.lineTo(px(i),py(v)):x.moveTo(px(i),py(v)));x.strokeStyle='#4c9aff';x.lineWidth=2;x.stroke();
+ x.fillStyle='#8da2c0';x.fillText('-60 s',m,h-4);x.fillText('now',w-26,h-4);}
+function barChart(c,rows){const[x,w,h]=setup(c);if(!rows.length){x.fillStyle='#8da2c0';x.font='12px sans-serif';x.fillText('No alerts yet today',10,h/2);return;}
+ const max=Math.max(...rows.map(r=>r[1])),bw=Math.max(6,Math.min(30,(w-10)/rows.length-4));x.font='10px sans-serif';
+ rows.forEach((r,i)=>{const bh=(h-24)*r[1]/max,bx=6+i*(bw+4);x.fillStyle='#a78bfa';x.fillRect(bx,h-16-bh,bw,bh);if(rows.length<=14){x.fillStyle='#8da2c0';x.fillText(r[0],bx-2,h-4);}});}
+
+/* ---------- renderers ---------- */
+function bars(el,entries,cls){const max=Math.max(1,...entries.map(e=>e[1]));el.innerHTML=entries.length?entries.map(([n,c])=>`<div class="bar"><span class="n" title="${esc(n)}">${esc(nice(n))}</span><span class="b"><i style="width:${100*c/max}%"></i></span><span class="c">${c}</span></div>`).join(''):'<div class="empty">No alerts yet</div>';}
+function alertHtml(a,isNew){return `<div class="alert ${a.severity}${isNew?' new':''}"><div><span class="badge ${a.severity}">${a.severity}</span><span class="t">${esc(nice(a.type))}</span>${a.simulated?'<span class="badge sim">SIMULATED</span>':''}</div>
+ <div class="m">${esc(a.time)} &nbsp;|&nbsp; ${esc(a.source||a.device||'?')}${a.target?' &rarr; '+esc(a.target):''}</div><div class="d">${esc(a.details||'')}</div></div>`;}
+function render(){const s=S;if(!s)return;
+ const c=s.capture,u=s.usb,sm=s.sim;
+ const pc=$('#pCap');pc.textContent=c.running?`Live capture: ${c.interface}`:(c.privileged?'Live capture: off':'Live capture: needs admin');pc.className='pill '+(c.running?'on':c.privileged?'':'warn');
+ const pu=$('#pUsb');pu.textContent=u.running?'USB monitor: on':(u.supported?'USB monitor: off':'USB monitor: unsupported');pu.className='pill '+(u.running?'on':'bad');
+ const ps=$('#pSim');ps.textContent=sm.running?`Simulating: ${sm.message}`:(sm.background?'Simulator: background traffic':'Simulator: idle');ps.className='pill '+(sm.running?'warn':sm.background?'on':'');
+ $('#clock').textContent=s.now;
+ const st=s.alerts.stats;
+ $('#kPk').textContent=fmt(s.traffic.packets);$('#kPps').textContent=fmt(s.traffic.current);$('#kAl').textContent=fmt(st.total);$('#kHi').textContent=fmt(st.by_severity.HIGH||0);
+ $('#kUsb').textContent=u.devices.filter(d=>d.kind==='storage').length;
+ if(tab==='dash'){lineChart($('#cPps'),s.traffic.pps);barChart($('#cTl'),st.timeline);
+  bars($('#byType'),Object.entries(st.by_type).sort((a,b)=>b[1]-a[1]));bars($('#topSrc'),st.top_sources);
+  $('#bySev').innerHTML=['HIGH','MEDIUM','LOW'].map(k=>`<div class="bar"><span class="n"><span class="badge ${k}">${k}</span></span><span class="b"><i style="width:${st.total?100*(st.by_severity[k]||0)/st.total:0}%"></i></span><span class="c">${st.by_severity[k]||0}</span></div>`).join('');
+  $('#supp').textContent=`Repeat alerts suppressed by cool-down: ${fmt(s.traffic.suppressed)}`;
+  const rec=s.alerts.recent,maxId=Math.max(0,...rec.map(a=>a.id));
+  $('#feedNote').textContent=rec.length?`${rec.length} most recent`:'';
+  $('#feed').innerHTML=rec.length?rec.map(a=>alertHtml(a,lastId!==null&&a.id>lastId)).join(''):'<div class="empty">No alerts. Open the Attack Simulator tab to generate some.</div>';}
+ const rec=s.alerts.recent;if(rec.length){const maxId=Math.max(...rec.map(a=>a.id));
+  if(lastId!==null)rec.filter(a=>a.id>lastId).reverse().forEach(a=>{toast(`<b>${a.severity}</b> ${esc(nice(a.type))}<br><span class="note">${esc(a.source||a.device||'')}${a.target?' &rarr; '+esc(a.target):''}</span>`,a.severity,6000);if(a.severity==='HIGH')beep();});
+  lastId=Math.max(lastId??0,maxId);}else if(lastId===null)lastId=0;
+ // simulator panel
+ $('#simBar').style.width=(100*(sm.progress||0))+'%';$('#simMsg').textContent=sm.running?`Running: ${sm.message} - ${sm.sent} packets/events sent`:(sm.message?`${sm.message}${sm.sent?' - '+sm.sent+' sent':''}`:'Idle - choose a scenario below or run the full demo.');
+ $('#bg').checked=!!sm.background;$$('#simCards button').forEach(b=>b.disabled=sm.running||(modeNow()==='network'&&b.dataset.net==='0'));$('#btnDemo').disabled=sm.running;
+ // USB
+ $('#usbNote').textContent=u.supported?(u.error?`Monitor error: ${u.error}`:'Plug in a flash drive or external disk - it appears here within a few seconds. Untrusted storage raises an alert and its top-level folder is checked for autorun.inf and executables.'):'USB monitoring is not supported on this operating system. Use the simulated devices to demonstrate.';
+ const dv=u.devices;$('#usbDevices').innerHTML=dv.length?`<table><tr><th>Device</th><th>Type</th><th>Mount</th><th>Size</th><th>Status</th><th></th></tr>${dv.map(d=>`<tr><td>${esc(d.name||d.dev_id)}${d.simulated?' <span class="badge sim">SIM</span>':''}<div class="note mono">${esc(d.dev_id)}</div></td><td>${esc(d.kind)}</td><td>${esc((d.mounts||[]).join(', ')||'-')}</td><td>${esc(d.size_text)}</td><td>${d.trusted?'<span class="badge ok">TRUSTED</span>':'<span class="badge info">not trusted</span>'}</td><td>${d.trusted?`<button data-untrust="${esc(d.dev_id)}">Remove trust</button>`:`<button data-trust="${esc(d.dev_id)}" data-name="${esc(d.name)}">Trust</button>`}</td></tr>`).join('')}</table>`:'<div class="empty">No USB devices detected.</div>';
+ const ev=u.events;$('#usbEvents').innerHTML=ev.length?`<table><tr><th>Time</th><th>Action</th><th>Device</th><th>Verdict</th><th>Details</th></tr>${ev.map(e=>`<tr><td class="mono">${esc(e.event_time)}</td><td>${esc(e.action)}</td><td>${esc(e.name)}${e.simulated?' <span class="badge sim">SIM</span>':''}</td><td><span class="badge ${e.verdict==='ALERT'?'no':e.verdict==='TRUSTED'?'ok':'info'}">${esc(e.verdict)}</span></td><td class="note">${esc(e.details)}</td></tr>`).join('')}</table>`:'<div class="empty">No USB events yet.</div>';
+ renderSettings();}
+function modeNow(){return $$('input[name=mode]').find(r=>r.checked).value;}
+let setSig='';function renderSettings(){if(tab!=='set')return;const s=S,sig=JSON.stringify([s.rules,s.trusted_hosts,s.ports,s.trusted_usb,s.capture]);if(sig===setSig||document.activeElement&&['INPUT','SELECT'].includes(document.activeElement.tagName))return;setSig=sig;
+ $('#capNote').textContent=s.capture.running?`Capturing on ${s.capture.interface} in promiscuous mode.`:(s.capture.privileged?'Choose an interface and press Start.':'Administrator/root rights are required for live capture. Restart the program as Administrator (Windows) or with sudo (Linux). The simulator and USB monitor work without them.');
+ $('#thosts').innerHTML=s.trusted_hosts.length?s.trusted_hosts.map(h=>`<div class="row" style="margin:4px 0"><span class="mono">${esc(h.ip_address)}</span><span class="note">${esc(h.description||'')}</span><button data-rmhost="${esc(h.ip_address)}">Remove</button></div>`).join(''):'<div class="note">None yet.</div>';
+ $('#rules').innerHTML=`<table><tr><th>Rule</th><th>Alert when...</th><th>Within (s)</th><th>Min sources</th><th>On</th><th></th></tr>${s.rules.map(r=>`<tr data-rule="${r.name}"><td><b>${esc(nice(r.name))}</b><span class="badge ${r.severity}" style="margin-left:6px">${r.severity}</span><div class="note">${esc(r.description)}</div></td><td>${esc(r.unit)} ${esc(r.comparison)} <input type="number" class="rt" value="${r.threshold}"></td><td><input type="number" class="rw" value="${r.window}"></td><td>${r.name==='DDOS_SYN'?`<input type="number" class="rx" value="${r.extra}">`:'<span class="note">-</span>'}</td><td><input type="checkbox" class="re" ${r.enabled?'checked':''}></td><td><button data-save="${r.name}">Save</button></td></tr>`).join('')}</table>`;
+ $('#ports').innerHTML=['RESTRICTED','AUTH'].map(cat=>`<div class="note" style="margin-top:6px">${cat==='RESTRICTED'?'Restricted ports (any attempt is suspicious)':'Login service ports (brute-force watch)'}</div><div class="row">${s.ports.filter(p=>p.category===cat).map(p=>`<span class="badge info">${p.port_number}${p.description?' '+esc(p.description):''} <a href="#" data-rmport="${p.port_number}" data-cat="${cat}" style="color:#ff9aa4">x</a></span>`).join('')||'<span class="note">none</span>'}</div>`).join('');
+ $('#tusb').innerHTML=s.trusted_usb.length?s.trusted_usb.map(t=>`<div class="row" style="margin:4px 0"><span class="mono" style="word-break:break-all">${esc(t.dev_id)}</span><button data-untrust="${esc(t.dev_id)}">Remove</button></div>`).join(''):'<div class="note">No trusted USB devices. Trust a device from the USB Devices tab.</div>';}
+
+/* ---------- history ---------- */
+function histQuery(){const p=new URLSearchParams();[['type','#fType'],['severity','#fSev'],['simulated','#fSim'],['source','#fSrc'],['date_from','#fFrom'],['date_to','#fTo']].forEach(([k,id])=>{const v=$(id).value.trim();if(v)p.set(k,v);});return p;}
+async function loadHist(){const p=histQuery();$('#fCsv').href='/api/export.csv?'+p;const r=await get('/api/alerts?'+p);
+ $('#histOut').innerHTML=r.error?`<div class="warn-box">${esc(r.error)}</div>`:(r.length?`<table><tr><th>ID</th><th>Time</th><th>Type</th><th>Severity</th><th>Source</th><th>Target</th><th>Count</th><th>Details</th></tr>${r.map(a=>`<tr><td>${a.alert_id}</td><td class="mono">${esc(a.detected_at)}</td><td>${esc(nice(a.type_name))}${a.simulated?' <span class="badge sim">SIM</span>':''}</td><td><span class="badge ${a.severity}">${a.severity}</span></td><td>${esc(a.source_ip||a.device||'')}</td><td>${esc(a.target_ip||'')}</td><td>${a.packet_count}</td><td class="note">${esc(a.details||'')}</td></tr>`).join('')}</table><p class="note">${r.length} record(s) shown</p>`:'<div class="empty">No matching alerts.</div>');}
+async function loadIfaces(){const l=await get('/api/interfaces'),sel=$('#iface'),cur=sel.value;sel.innerHTML=l.length?l.map(i=>`<option value="${esc(i.name)}">${esc(i.name)}${i.ip?' - '+esc(i.ip):''}${i.description?' ('+esc(i.description)+')':''}</option>`).join(''):'<option value="">No interfaces found</option>';if(cur)sel.value=cur;}
+
+/* ---------- events ---------- */
+document.addEventListener('click',e=>{const t=e.target.closest('[data-trust],[data-untrust],[data-rmhost],[data-save],[data-rmport],[data-sim]');if(!t)return;e.preventDefault();
+ if(t.dataset.trust)act('/api/trusted_usb',{action:'add',dev_id:t.dataset.trust,description:t.dataset.name},'Device trusted - it will no longer raise alerts.');
+ else if(t.dataset.untrust)act('/api/trusted_usb',{action:'remove',dev_id:t.dataset.untrust},'Trust removed.');
+ else if(t.dataset.rmhost)act('/api/trusted_host',{action:'remove',ip:t.dataset.rmhost}),setSig='';
+ else if(t.dataset.rmport)act('/api/port',{action:'remove',port:t.dataset.rmport,category:t.dataset.cat}),setSig='';
+ else if(t.dataset.save){const tr=t.closest('tr');act('/api/rule',{name:t.dataset.save,threshold:tr.querySelector('.rt').value,window:tr.querySelector('.rw').value,extra:tr.querySelector('.rx')?tr.querySelector('.rx').value:0,enabled:tr.querySelector('.re').checked},'Rule saved.');setSig='';}
+ else if(t.dataset.sim){const dur=$('#oDur')?.value,rate=$('#oRate')?.value;act('/api/simulate',{scenario:t.dataset.sim,mode:modeNow(),target:$('#target').value,duration:dur,rate:rate});}});
+$('#btnDemo').onclick=()=>act('/api/simulate',{scenario:'full_demo',mode:modeNow(),target:$('#target').value});
+$('#btnStop').onclick=()=>act('/api/simulate/stop');
+$('#bg').onchange=e=>act('/api/simulate/background',{on:e.target.checked});
+$('#btnClear').onclick=()=>act('/api/simulate/clear',{},'Simulated alerts cleared.');
+$$('input[name=mode]').forEach(r=>r.onchange=()=>{$('#netWarn').style.display=modeNow()==='network'?'block':'none';render();});
+$('#uSimS').onclick=()=>act('/api/simulate',{scenario:'usb_storage',mode:'inject'});$('#uSimH').onclick=()=>act('/api/simulate',{scenario:'usb_hid',mode:'inject'});
+$('#fGo').onclick=loadHist;$('#capStart').onclick=()=>act('/api/capture/start',{iface:$('#iface').value},'Capture started.');$('#capStop').onclick=()=>act('/api/capture/stop',{},'Capture stopped.');
+$('#thAdd').onclick=()=>{act('/api/trusted_host',{action:'add',ip:$('#thIp').value,description:$('#thDesc').value},'Trusted host added.');$('#thIp').value='';setSig='';};
+$('#pAdd').onclick=()=>{act('/api/port',{action:'add',port:$('#pNum').value,category:$('#pCat').value},'Port added.');setSig='';};
+$('#rulesReset').onclick=()=>{act('/api/rules/reset',{},'Rules reset to defaults.');setSig='';};
+
+async function refresh(){if(busy)return;busy=true;try{S=await get('/api/state');render();}catch(e){$('#pCap').textContent='Server not reachable';$('#pCap').className='pill bad';}busy=false;}
+(async()=>{META=await get('/api/meta');
+ $('#fType').innerHTML+=Object.keys(META.types).map(k=>`<option value="${k}">${nice(k)}</option>`).join('');
+ $('#simCards').innerHTML=META.scenarios.map(s=>`<div class="card sim"><div class="tag">Detected by: ${nice(s.detects)}</div><h4>${esc(s.title)}</h4><p>${esc(s.text)}</p><button class="primary" data-sim="${s.id}" data-net="${s.network?1:0}">Launch</button> <span class="note">${s.duration} s${s.network?'':' &middot; inject only'}</span></div>`).join('');
+ refresh();setInterval(refresh,1000);})();
+</script>
+</body>
+</html>

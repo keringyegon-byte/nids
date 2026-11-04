@@ -1,0 +1,9 @@
+{
+  "database_path": "nids_v2.db",
+  "host": "127.0.0.1",
+  "port": 8080,
+  "interface": null,
+  "cooldown_seconds": 10,
+  "usb_poll_seconds": 3,
+  "console_alerts": true
+}

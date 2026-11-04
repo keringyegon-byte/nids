@@ -1,0 +1,21 @@
+
+Capture: /tmp/v2s1.pcap  (34314 packets, 67 hosts)
+
+Attack type               Hosts  TP  FN   TPR %  Delay mean s   SD s  Max s
+---------------------------------------------------------------------------
+PORT_SCAN                     3   3   0   100.0         0.685  0.140  0.833
+SLOW_PORT_SCAN                3   3   0   100.0        20.000  0.000 20.000
+SYN_FLOOD                     3   3   0   100.0         0.339  0.294  0.667
+DDOS_SYN                      3   3   0   100.0         0.625  0.000  0.625
+ICMP_FLOOD                    3   3   0   100.0         0.339  0.294  0.667
+BRUTE_FORCE                   3   3   0   100.0        10.000  0.000 10.000
+ARP_SPOOFING                  3   3   0   100.0         0.000  0.000  0.000
+UNAUTHORIZED_CONNECTION       3   3   0   100.0         3.000  0.000  3.000
+USB_STORAGE                   0   0   0     0.0           nan  0.000    nan
+USB_HID                       0   0   0     0.0           nan  0.000    nan
+---------------------------------------------------------------------------
+Overall: TP=24 FN=0 FP=0 TN=43
+  True Positive Rate  = 100.0%
+  False Positive Rate = 0.0%
+  Accuracy            = 100.0%
+  Throughput          = 4,842 packets/s (7.09s for 34314 packets, incl. PCAP parsing)
